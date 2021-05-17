@@ -295,7 +295,7 @@ public class Capture extends CordovaPlugin {
 
     /**
      * Sets up an intent to capture video.  Result handled by onActivityResult()
-     */
+     
     private void captureVideo(Request req) {
         if(cameraPermissionInManifest && !PermissionHelper.hasPermission(this, Manifest.permission.CAMERA)) {
             PermissionHelper.requestPermission(this, req.requestCode, Manifest.permission.CAMERA);
@@ -305,6 +305,36 @@ public class Capture extends CordovaPlugin {
             if(Build.VERSION.SDK_INT > 7){
                 intent.putExtra("android.intent.extra.durationLimit", req.duration);
                 intent.putExtra("android.intent.extra.videoQuality", req.quality);
+            }
+            this.cordova.startActivityForResult((CordovaPlugin) this, intent, req.requestCode);
+        }
+    }
+    */
+
+    /**
+     * Modified version of captureVideo
+     * Sets the location for the temporary media file at the external storage root to avoid videos being added to photo
+     * gallery.
+     */
+    private void captureVideo(Request req) {
+        if(cameraPermissionInManifest && !PermissionHelper.hasPermission(this, Manifest.permission.CAMERA)) {
+            PermissionHelper.requestPermission(this, req.requestCode, Manifest.permission.CAMERA);
+        } else {
+
+            StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+            StrictMode.setVmPolicy(builder.build());
+
+            File mediaFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/iservicetemp.mp4");
+
+            Intent intent = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
+
+            Uri videoUri = Uri.fromFile(mediaFile);
+
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, videoUri);
+
+            if(Build.VERSION.SDK_INT > 7){
+            intent.putExtra("android.intent.extra.durationLimit", req.duration);
+            intent.putExtra("android.intent.extra.videoQuality", req.quality);
             }
             this.cordova.startActivityForResult((CordovaPlugin) this, intent, req.requestCode);
         }
